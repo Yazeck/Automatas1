@@ -1,7 +1,8 @@
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
-
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.awt.Font;
@@ -12,7 +13,7 @@ public class Frame extends JFrame {
     private JMenuItem separateMenuItem; // Nuevo item de menú para Separar
     private JTextArea textAreaProcesado;
     private JTextField tFCadena;
-    private JTextArea textAMessage; // Se ha movido aquí para ser accesible desde todos los métodos
+    private JTextArea textAMessage; 
 
     public Frame() {
         initializeComponents();
@@ -20,7 +21,7 @@ public class Frame extends JFrame {
 
     private void initializeComponents() {
         setTitle("File Chooser Example");
-        setSize(400, 400);
+        setSize(429, 431);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JMenuBar menuBar = new JMenuBar();
@@ -65,12 +66,13 @@ public class Frame extends JFrame {
         // JTextField para ingresar texto manualmente
         tFCadena = new JTextField();
         tFCadena.setFont(new Font("Lucida Grande", Font.PLAIN, 13));
-        tFCadena.setText("Introduce your String:");
+        tFCadena.setText("");
         scrollPane.setColumnHeaderView(tFCadena);
 
         // JTextArea para mostrar los resultados
-        textAMessage = new JTextArea(); 
-        textAMessage.setEditable(false); 
+        textAMessage = new JTextArea();
+        textAMessage.setEditable(false);
+        textAMessage.setBounds(getBounds());
         JScrollPane errorScrollPane = new JScrollPane(textAMessage); 
         errorScrollPane.setBounds(10, 281, 380, 69); 
         getContentPane().add(errorScrollPane);
@@ -83,35 +85,61 @@ public class Frame extends JFrame {
 
     // Método para separar identificadores de variables y números
     private void separate() {
-        String inputText = textAreaProcesado.getText(); // Obtener el texto del JTextArea
-        // Expresiones regulares para identificar identificadores de variables y números
-        String variablePattern = "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b";
-        String numberPattern = "\\b\\d+\\b";
+        // Obtener el texto del JTextArea
+        String inputText = textAreaProcesado.getText(); 
+
+        // Expresiones regulares para identificar variables, números y caracteres especiales
+        String variablePattern = "[a-zA-Z_]\\w*"; // Variables, inician con letra o guion bajo, seguidas de letras, números o guion bajo
+        String numberPattern = "\\d+"; // Números
+        String specialCharacterPattern = "[^a-zA-Z0-9\\s]"; // Caracteres especiales (excluye letras, números y espacios)
 
         // Patrones para las expresiones regulares
         Pattern variableRegex = Pattern.compile(variablePattern);
         Pattern numberRegex = Pattern.compile(numberPattern);
+        Pattern specialCharacterRegex = Pattern.compile(specialCharacterPattern);
 
-        // Buscar coincidencias de variables y números en el texto de entrada
+        // Listas para almacenar variables, números y caracteres especiales
+        List<String> variables = new ArrayList<>();
+        List<String> numbers = new ArrayList<>();
+        List<String> specialCharacters = new ArrayList<>();
+
+        // Buscar coincidencias de variables en el texto de entrada
         Matcher variableMatcher = variableRegex.matcher(inputText);
-        Matcher numberMatcher = numberRegex.matcher(inputText);
-
-        // Limpiar el área de mensajes
-        textAMessage.setText("");
-
-        // Mostrar los identificadores de variables encontrados
         while (variableMatcher.find()) {
             String variable = variableMatcher.group();
+            variables.add(variable);
+        }
+
+        // Buscar coincidencias de números en el texto de entrada
+        Matcher numberMatcher = numberRegex.matcher(inputText);
+        while (numberMatcher.find()) {
+            String number = numberMatcher.group();
+            numbers.add(number);
+        }
+
+        // Buscar coincidencias de caracteres especiales en el texto de entrada
+        Matcher specialCharacterMatcher = specialCharacterRegex.matcher(inputText);
+        while (specialCharacterMatcher.find()) {
+            String specialChar = specialCharacterMatcher.group();
+            specialCharacters.add(specialChar);
+        }
+
+        // Mostrar los resultados en el textAMessage
+        textAMessage.setText("Variables:\n");
+        for (String variable : variables) {
             textAMessage.append(variable + "\n");
         }
 
-        // Mostrar los números encontrados
-        while (numberMatcher.find()) {
-            String number = numberMatcher.group();
+        textAMessage.append("\nNúmeros:\n");
+        for (String number : numbers) {
             textAMessage.append(number + "\n");
         }
-    }
 
+        textAMessage.append("\nCaracteres especiales:\n");
+        for (String specialChar : specialCharacters) {
+            textAMessage.append(specialChar + "\n");
+        }
+    }
     // Método para abrir un archivo
     private void openFileMenuItemActionPerformed(ActionEvent evt) {
         JFileChooser fileChooser = new JFileChooser();
@@ -151,7 +179,6 @@ public class Frame extends JFrame {
             }
         }
     }
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
